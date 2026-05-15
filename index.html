@@ -1,0 +1,1852 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ALM — Asset-Liability Management</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=SF+Mono&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #f5f5f7;
+  --bg-elev: #ffffff;
+  --bg-card: #ffffff;
+  --bg-subtle: #fafafa;
+  --bg-deep: #ebebef;
+
+  --ink: #1d1d1f;
+  --ink-2: #424245;
+  --ink-3: #6e6e73;
+  --ink-4: #86868b;
+  --ink-5: #a1a1a6;
+
+  --line: rgba(0, 0, 0, 0.08);
+  --line-2: rgba(0, 0, 0, 0.04);
+
+  --accent: #0071e3;
+  --accent-hover: #0077ed;
+  --green: #30d158;
+  --orange: #ff9f0a;
+  --red: #ff453a;
+  --purple: #bf5af2;
+  --teal: #5ac8fa;
+
+  --shadow-sm: 0 1px 2px rgba(0,0,0,0.04), 0 1px 1px rgba(0,0,0,0.02);
+  --shadow-md: 0 4px 12px rgba(0,0,0,0.05), 0 1px 3px rgba(0,0,0,0.03);
+  --shadow-lg: 0 12px 32px rgba(0,0,0,0.08), 0 2px 8px rgba(0,0,0,0.04);
+  --shadow-xl: 0 24px 64px rgba(0,0,0,0.12), 0 8px 16px rgba(0,0,0,0.06);
+
+  --radius-sm: 8px;
+  --radius: 12px;
+  --radius-lg: 18px;
+  --radius-xl: 24px;
+
+  --mono: 'SF Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+html, body {
+  background: var(--bg);
+  color: var(--ink);
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', sans-serif;
+  font-size: 14px;
+  line-height: 1.5;
+  letter-spacing: -0.01em;
+  min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+.topbar {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  background: rgba(245, 245, 247, 0.8);
+  backdrop-filter: saturate(180%) blur(20px);
+  -webkit-backdrop-filter: saturate(180%) blur(20px);
+  border-bottom: 1px solid var(--line);
+  padding: 14px 28px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.topbar-left {
+  display: flex;
+  gap: 28px;
+  align-items: center;
+}
+
+.brand {
+  font-weight: 600;
+  font-size: 17px;
+  letter-spacing: -0.02em;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.brand-mark {
+  width: 22px;
+  height: 22px;
+  border-radius: 6px;
+  background: linear-gradient(135deg, var(--accent), var(--purple));
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.ticker {
+  display: flex;
+  gap: 22px;
+  font-size: 13px;
+  color: var(--ink-3);
+}
+.ticker span b {
+  color: var(--ink);
+  font-weight: 600;
+  margin-left: 6px;
+  font-variant-numeric: tabular-nums;
+}
+
+.topbar-right {
+  display: flex;
+  gap: 20px;
+  align-items: center;
+  font-size: 13px;
+  color: var(--ink-3);
+}
+
+.live-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  background: rgba(48, 209, 88, 0.12);
+  color: #248a3d;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 600;
+}
+.live-dot {
+  width: 6px; height: 6px;
+  background: var(--green);
+  border-radius: 50%;
+  animation: pulse 2s ease-in-out infinite;
+}
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
+}
+
+#session-clock {
+  font-family: var(--mono);
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+}
+
+.app {
+  display: grid;
+  grid-template-columns: 300px 1fr 340px;
+  gap: 20px;
+  padding: 20px 28px 40px;
+  max-width: 1640px;
+  margin: 0 auto;
+}
+
+.panel {
+  background: var(--bg-elev);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-md);
+  padding: 24px;
+  height: fit-content;
+  position: sticky;
+  top: 70px;
+  max-height: calc(100vh - 90px);
+  overflow-y: auto;
+}
+
+.panel::-webkit-scrollbar { width: 6px; }
+.panel::-webkit-scrollbar-track { background: transparent; }
+.panel::-webkit-scrollbar-thumb { background: var(--line); border-radius: 3px; }
+
+.panel-title {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--ink-4);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin-bottom: 16px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.panel-title span:last-child {
+  font-weight: 500;
+  text-transform: none;
+  letter-spacing: 0;
+  color: var(--ink-5);
+}
+
+.bank-header {
+  margin-bottom: 24px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid var(--line);
+}
+.bank-name {
+  font-size: 19px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  line-height: 1.2;
+}
+.bank-sub {
+  font-size: 12px;
+  color: var(--ink-4);
+  margin-top: 4px;
+  font-weight: 500;
+}
+
+.role-card {
+  background: linear-gradient(135deg, #f0f4ff 0%, #e8f0ff 100%);
+  border-radius: var(--radius);
+  padding: 14px 16px;
+  margin-bottom: 24px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.role-icon {
+  width: 36px; height: 36px;
+  border-radius: 10px;
+  background: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  box-shadow: var(--shadow-sm);
+}
+.role-label {
+  font-size: 11px;
+  color: var(--ink-4);
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.role-name {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--ink);
+  margin-top: 1px;
+}
+
+.metric-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--line-2);
+  font-size: 13px;
+}
+.metric-row:last-child { border-bottom: none; }
+.metric-label { color: var(--ink-3); font-weight: 500; }
+.metric-val {
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  color: var(--ink);
+}
+.metric-val.ok { color: #248a3d; }
+.metric-val.warn { color: #b25000; }
+.metric-val.bad { color: #c4302b; }
+
+.health-card {
+  margin-top: 20px;
+  padding: 16px;
+  background: var(--bg-subtle);
+  border-radius: var(--radius);
+  border: 1px solid var(--line);
+}
+.health-bar-label {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 12px;
+  color: var(--ink-3);
+  margin-bottom: 10px;
+  font-weight: 500;
+}
+.health-bar-label b {
+  color: var(--ink);
+  font-weight: 700;
+  font-size: 15px;
+  font-variant-numeric: tabular-nums;
+}
+.health-track {
+  height: 6px;
+  background: var(--bg-deep);
+  border-radius: 999px;
+  overflow: hidden;
+}
+.health-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--red), var(--orange), var(--green));
+  transition: width 0.6s cubic-bezier(.25,.1,.25,1);
+  border-radius: 999px;
+}
+
+.stage { min-height: 100%; }
+
+.phase-indicator {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 24px;
+  background: var(--bg-elev);
+  padding: 6px;
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-sm);
+}
+.phase-step {
+  flex: 1;
+  padding: 9px 12px;
+  border-radius: 8px;
+  color: var(--ink-4);
+  text-align: center;
+  font-size: 12px;
+  font-weight: 600;
+  transition: all 0.25s cubic-bezier(.25,.1,.25,1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+.phase-step.active {
+  color: white;
+  background: var(--ink);
+  box-shadow: var(--shadow-sm);
+}
+.phase-step.done {
+  color: #248a3d;
+  background: rgba(48, 209, 88, 0.1);
+}
+.phase-step .num {
+  font-family: var(--mono);
+  font-size: 10px;
+  opacity: 0.6;
+}
+.phase-step.active .num { opacity: 0.8; }
+
+.scenario-header { margin-bottom: 28px; }
+.scenario-eyebrow {
+  display: inline-block;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--accent);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin-bottom: 14px;
+  padding: 4px 10px;
+  background: rgba(0, 113, 227, 0.08);
+  border-radius: 999px;
+}
+.scenario-title {
+  font-size: 36px;
+  font-weight: 700;
+  line-height: 1.1;
+  letter-spacing: -0.03em;
+  color: var(--ink);
+  margin-bottom: 14px;
+}
+.scenario-title em {
+  font-style: normal;
+  background: linear-gradient(135deg, var(--accent), var(--purple));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+.scenario-body {
+  font-size: 16px;
+  line-height: 1.6;
+  color: var(--ink-2);
+  max-width: 64ch;
+  font-weight: 400;
+}
+.scenario-body strong { color: var(--ink); font-weight: 600; }
+
+.desk-note {
+  margin-top: 18px;
+  padding: 18px 20px;
+  background: var(--bg-elev);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-sm);
+  display: flex;
+  gap: 14px;
+  align-items: flex-start;
+}
+.desk-avatar {
+  width: 36px; height: 36px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--orange), var(--red));
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-weight: 600;
+  font-size: 13px;
+}
+.desk-attribution {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--ink-4);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin-bottom: 4px;
+}
+.desk-body {
+  font-size: 14px;
+  color: var(--ink-2);
+  line-height: 1.55;
+}
+
+.builder {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin-top: 24px;
+}
+
+.bs-side {
+  background: var(--bg-elev);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+  padding: 20px;
+}
+.bs-side h3 {
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  margin-bottom: 16px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid var(--line);
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+}
+.bs-side h3 .total {
+  font-family: var(--mono);
+  font-weight: 600;
+  font-size: 13px;
+  color: var(--ink-3);
+  font-variant-numeric: tabular-nums;
+}
+.bs-side h3 .dot {
+  display: inline-block;
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  margin-right: 8px;
+  vertical-align: middle;
+}
+.asset-side h3 .dot { background: var(--teal); }
+.liab-side h3 .dot { background: var(--purple); }
+
+.bs-item {
+  display: grid;
+  grid-template-columns: 1fr auto auto;
+  gap: 10px;
+  align-items: center;
+  padding: 11px 0;
+  border-bottom: 1px solid var(--line-2);
+}
+.bs-item:last-child { border-bottom: none; }
+
+.bs-item-name b {
+  display: block;
+  font-weight: 600;
+  font-size: 13px;
+  color: var(--ink);
+  letter-spacing: -0.01em;
+}
+.bs-item-name span {
+  display: block;
+  color: var(--ink-4);
+  font-size: 11px;
+  margin-top: 2px;
+}
+
+.bs-duration {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--ink-3);
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+  min-width: 64px;
+  line-height: 1.4;
+}
+.bs-duration b {
+  display: block;
+  color: var(--ink);
+  font-weight: 600;
+  font-size: 12px;
+}
+
+.qty-control {
+  display: flex;
+  align-items: center;
+  background: var(--bg-subtle);
+  border-radius: 999px;
+  padding: 2px;
+  border: 1px solid var(--line);
+}
+.qty-control button {
+  background: transparent;
+  border: none;
+  color: var(--ink-3);
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  transition: all 0.15s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+}
+.qty-control button:hover {
+  background: var(--ink);
+  color: white;
+}
+.qty-control .qty-val {
+  min-width: 28px;
+  text-align: center;
+  font-size: 13px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  padding: 0 4px;
+}
+
+.constraint-banner {
+  background: var(--bg-elev);
+  border-radius: var(--radius);
+  padding: 14px 18px;
+  margin-top: 18px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  box-shadow: var(--shadow-sm);
+  border-left: 3px solid var(--accent);
+  transition: all 0.3s;
+}
+.constraint-banner.bad { border-left-color: var(--red); background: #fff8f8; }
+.constraint-banner.ok { border-left-color: var(--green); background: #f6fff8; }
+.constraint-banner .label {
+  font-size: 12px;
+  color: var(--ink-3);
+  font-weight: 500;
+}
+.constraint-banner .val {
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  font-family: var(--mono);
+  font-size: 13px;
+}
+
+.action-bar {
+  margin-top: 24px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 14px;
+}
+
+.btn {
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+  padding: 11px 22px;
+  border: none;
+  border-radius: 999px;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(.25,.1,.25,1);
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.btn-primary {
+  background: var(--accent);
+  color: white;
+  box-shadow: var(--shadow-sm);
+}
+.btn-primary:hover:not(:disabled) {
+  background: var(--accent-hover);
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-md);
+}
+.btn-primary:disabled {
+  background: var(--ink-5);
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+.btn-secondary {
+  background: var(--bg-elev);
+  color: var(--ink);
+  border: 1px solid var(--line);
+}
+.btn-secondary:hover { background: var(--bg-subtle); }
+.btn-ghost {
+  background: transparent;
+  color: var(--ink-3);
+  padding: 11px 12px;
+}
+.btn-ghost:hover { color: var(--ink); background: var(--bg-deep); }
+
+.action-hint {
+  font-size: 12px;
+  color: var(--ink-4);
+  font-weight: 500;
+}
+
+.shock-display {
+  background: var(--bg-elev);
+  border-radius: var(--radius-lg);
+  padding: 28px;
+  margin-top: 18px;
+  box-shadow: var(--shadow-md);
+}
+
+.shock-headline {
+  display: flex;
+  align-items: baseline;
+  gap: 14px;
+  margin-bottom: 6px;
+  flex-wrap: wrap;
+}
+.shock-bps {
+  font-family: var(--mono);
+  font-weight: 700;
+  font-size: 30px;
+  padding: 4px 14px;
+  border-radius: var(--radius-sm);
+  letter-spacing: -0.02em;
+}
+.shock-bps.up { background: rgba(255, 69, 58, 0.1); color: #c4302b; }
+.shock-bps.dn { background: rgba(90, 200, 250, 0.15); color: #0071a8; }
+.shock-label {
+  font-size: 17px;
+  color: var(--ink-3);
+  font-weight: 500;
+}
+.shock-sub {
+  font-size: 12px;
+  color: var(--ink-4);
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin-bottom: 24px;
+}
+
+.curve-vis {
+  background: var(--bg-subtle);
+  border-radius: var(--radius);
+  padding: 16px;
+  margin-top: 18px;
+}
+
+.impact-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 14px;
+  margin-top: 24px;
+}
+.impact-cell {
+  background: var(--bg-elev);
+  border-radius: var(--radius);
+  padding: 20px;
+  box-shadow: var(--shadow-sm);
+}
+.impact-label {
+  font-size: 11px;
+  color: var(--ink-4);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin-bottom: 8px;
+}
+.impact-num {
+  font-size: 30px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.02em;
+  line-height: 1.1;
+}
+.impact-num.pos { color: #248a3d; }
+.impact-num.neg { color: #c4302b; }
+.impact-sub {
+  font-size: 11px;
+  color: var(--ink-4);
+  margin-top: 4px;
+}
+
+.narrative {
+  background: var(--bg-elev);
+  border-radius: var(--radius-lg);
+  padding: 24px 28px;
+  margin-top: 20px;
+  box-shadow: var(--shadow-sm);
+  border-left: 3px solid var(--accent);
+}
+.narrative-body {
+  font-size: 16px;
+  line-height: 1.6;
+  color: var(--ink-2);
+}
+.narrative-attr {
+  font-size: 11px;
+  color: var(--ink-4);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin-top: 12px;
+}
+
+.regulator-note {
+  margin-top: 16px;
+  padding: 16px 20px;
+  border-radius: var(--radius);
+  font-size: 13px;
+  line-height: 1.55;
+  color: var(--ink-2);
+  background: var(--bg-elev);
+  box-shadow: var(--shadow-sm);
+  border-left: 3px solid var(--ink-5);
+}
+.regulator-note.bad { border-left-color: var(--red); background: #fff8f8; }
+.regulator-note.warn { border-left-color: var(--orange); background: #fffaf0; }
+.regulator-note.good { border-left-color: var(--green); background: #f6fff8; }
+.regulator-note .reg-label {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--ink-4);
+  margin-bottom: 6px;
+}
+.regulator-note b { color: var(--ink); font-weight: 600; }
+
+.gauge { margin-bottom: 18px; }
+.gauge-label {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  font-size: 12px;
+  color: var(--ink-3);
+  margin-bottom: 8px;
+  font-weight: 500;
+}
+.gauge-label b {
+  color: var(--ink);
+  font-weight: 600;
+  font-size: 14px;
+  font-variant-numeric: tabular-nums;
+  font-family: var(--mono);
+}
+.gauge-track {
+  height: 4px;
+  background: var(--bg-deep);
+  border-radius: 999px;
+  position: relative;
+  overflow: hidden;
+}
+.gauge-fill {
+  position: absolute;
+  height: 100%;
+  background: var(--accent);
+  border-radius: 999px;
+  transition: all 0.6s cubic-bezier(.25,.1,.25,1);
+}
+.gauge-fill.split { background: var(--teal); }
+.gauge-fill.split.neg { background: var(--red); }
+.gauge-marker {
+  position: absolute;
+  left: 50%;
+  top: -2px;
+  bottom: -2px;
+  width: 1px;
+  background: var(--ink-5);
+  opacity: 0.5;
+}
+
+.log {
+  background: var(--bg-subtle);
+  border-radius: var(--radius);
+  padding: 14px;
+  font-size: 12px;
+  max-height: 240px;
+  overflow-y: auto;
+}
+.log::-webkit-scrollbar { width: 4px; }
+.log::-webkit-scrollbar-thumb { background: var(--line); border-radius: 2px; }
+
+.log-entry {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--line-2);
+}
+.log-entry:last-child { border-bottom: none; }
+.log-entry:first-child { padding-top: 0; }
+.log-ts {
+  font-family: var(--mono);
+  color: var(--ink-5);
+  font-size: 10px;
+  font-variant-numeric: tabular-nums;
+}
+.log-msg { color: var(--ink-2); font-size: 12px; line-height: 1.4; }
+.log-msg.info b { color: var(--accent); font-weight: 600; }
+.log-msg.warn b { color: #b25000; font-weight: 600; }
+.log-msg.bad b { color: #c4302b; font-weight: 600; }
+.log-msg.good b { color: #248a3d; font-weight: 600; }
+
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  z-index: 200;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 30px;
+  animation: fadeIn 0.4s ease;
+}
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+.modal {
+  background: var(--bg-elev);
+  border-radius: var(--radius-xl);
+  max-width: 680px;
+  width: 100%;
+  max-height: 90vh;
+  overflow-y: auto;
+  padding: 48px;
+  box-shadow: var(--shadow-xl);
+  animation: slideUp 0.5s cubic-bezier(.25,.1,.25,1);
+}
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(20px) scale(0.98); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.modal-icon {
+  width: 56px;
+  height: 56px;
+  border-radius: 16px;
+  background: linear-gradient(135deg, var(--accent), var(--purple));
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 26px;
+  font-weight: 700;
+  margin-bottom: 24px;
+  box-shadow: var(--shadow-md);
+}
+
+.modal-title {
+  font-size: 42px;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  line-height: 1.05;
+  margin-bottom: 12px;
+}
+.modal-title em {
+  font-style: normal;
+  background: linear-gradient(135deg, var(--accent), var(--purple));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+.modal-sub {
+  font-size: 17px;
+  color: var(--ink-3);
+  margin-bottom: 32px;
+  font-weight: 400;
+  line-height: 1.5;
+}
+
+.primer {
+  background: var(--bg-subtle);
+  border-radius: var(--radius);
+  padding: 18px 22px;
+  margin-bottom: 28px;
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--ink-2);
+}
+.primer b { color: var(--ink); font-weight: 600; }
+
+.section-label {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--ink-4);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin-bottom: 12px;
+}
+
+.role-choices {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-bottom: 32px;
+}
+.role-choice {
+  background: var(--bg-elev);
+  border: 2px solid var(--line);
+  border-radius: var(--radius);
+  padding: 22px;
+  cursor: pointer;
+  transition: all 0.25s cubic-bezier(.25,.1,.25,1);
+  text-align: left;
+  font-family: inherit;
+  color: var(--ink);
+}
+.role-choice:hover {
+  border-color: var(--ink-5);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+.role-choice.selected {
+  border-color: var(--accent);
+  background: linear-gradient(135deg, #f0f7ff, #e8f0ff);
+  box-shadow: 0 0 0 3px rgba(0, 113, 227, 0.1);
+}
+.role-choice-emoji {
+  font-size: 28px;
+  margin-bottom: 10px;
+}
+.role-choice-name {
+  font-size: 17px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  margin-bottom: 6px;
+}
+.role-choice-desc {
+  font-size: 13px;
+  color: var(--ink-3);
+  line-height: 1.5;
+}
+
+.modal-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.endscreen {
+  background: var(--bg-elev);
+  border-radius: var(--radius-xl);
+  padding: 36px 40px;
+  box-shadow: var(--shadow-md);
+  margin-bottom: 20px;
+}
+.grade-card {
+  display: flex;
+  align-items: center;
+  gap: 28px;
+  margin-bottom: 28px;
+}
+.grade-display {
+  font-size: 120px;
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: -0.06em;
+}
+.grade-display.A { color: var(--green); }
+.grade-display.B { color: var(--teal); }
+.grade-display.C { color: var(--orange); }
+.grade-display.D, .grade-display.F { color: var(--red); }
+
+.grade-content { flex: 1; }
+.grade-title {
+  font-size: 28px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  line-height: 1.15;
+  margin-bottom: 10px;
+}
+.grade-body {
+  font-size: 15px;
+  color: var(--ink-3);
+  line-height: 1.55;
+}
+
+.end-stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  margin-top: 24px;
+}
+.end-stat {
+  background: var(--bg-subtle);
+  border-radius: var(--radius);
+  padding: 18px;
+}
+.end-stat-label {
+  font-size: 11px;
+  color: var(--ink-4);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin-bottom: 6px;
+}
+.end-stat-val {
+  font-size: 24px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.01em;
+}
+
+@media (max-width: 1240px) {
+  .app { grid-template-columns: 280px 1fr; }
+  .right-rail { display: none; }
+}
+@media (max-width: 980px) {
+  .app { grid-template-columns: 1fr; padding: 16px; }
+  .panel { position: static; max-height: none; }
+  .ticker { display: none; }
+  .builder { grid-template-columns: 1fr; }
+  .impact-grid { grid-template-columns: 1fr; }
+  .scenario-title { font-size: 28px; }
+  .modal { padding: 32px 24px; }
+  .modal-title { font-size: 32px; }
+  .role-choices { grid-template-columns: 1fr; }
+  .end-stats { grid-template-columns: 1fr 1fr; }
+  .grade-card { flex-direction: column; align-items: flex-start; }
+  .grade-display { font-size: 88px; }
+}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="topbar-left">
+    <div class="brand">
+      <span class="brand-mark">A</span>
+      ALM
+    </div>
+    <div class="ticker">
+      <span>SOFR<b id="t-sofr">4.83</b></span>
+      <span>10Y<b id="t-10y">4.21</b></span>
+      <span>2s10s<b id="t-curve">-62</b></span>
+      <span>VIX<b id="t-vix">18.4</b></span>
+    </div>
+  </div>
+  <div class="topbar-right">
+    <span class="live-pill"><span class="live-dot"></span>Live</span>
+    <span id="session-qtr">Q1 · Year 1</span>
+    <span id="session-clock">00:00:00</span>
+  </div>
+</div>
+
+<div class="app">
+
+  <div class="panel">
+    <div class="bank-header">
+      <div class="bank-name" id="bank-name">Meridian Trust &amp; Savings</div>
+      <div class="bank-sub" id="bank-charter">Fed Charter · Tier 2 · $4.2B AUM</div>
+    </div>
+
+    <div class="role-card">
+      <div class="role-icon" id="role-icon">—</div>
+      <div>
+        <div class="role-label">Your desk</div>
+        <div class="role-name" id="role-display">Select role</div>
+      </div>
+    </div>
+
+    <div class="panel-title"><span>Position Snapshot</span><span>USD MM</span></div>
+    <div id="position-snapshot"></div>
+
+    <div class="health-card">
+      <div class="health-bar-label"><span>Bank Health</span><b id="health-pct">100%</b></div>
+      <div class="health-track"><div class="health-fill" id="health-fill" style="width: 100%"></div></div>
+    </div>
+  </div>
+
+  <div class="stage">
+    <div class="phase-indicator">
+      <div class="phase-step active" id="phase-1"><span class="num">01</span>Position</div>
+      <div class="phase-step" id="phase-2"><span class="num">02</span>Shock</div>
+      <div class="phase-step" id="phase-3"><span class="num">03</span>Outcome</div>
+      <div class="phase-step" id="phase-4"><span class="num">04</span>Review</div>
+    </div>
+    <div id="stage-content"></div>
+  </div>
+
+  <div class="panel right-rail">
+    <div class="panel-title"><span>Risk Telemetry</span><span>Real-time</span></div>
+
+    <div class="gauge">
+      <div class="gauge-label"><span>Duration Gap</span><b id="g-dur">0.0 yr</b></div>
+      <div class="gauge-track">
+        <div class="gauge-marker"></div>
+        <div class="gauge-fill split" id="g-dur-fill" style="width: 0%"></div>
+      </div>
+    </div>
+    <div class="gauge">
+      <div class="gauge-label"><span>NII Sens · +100bp</span><b id="g-nii">0.0%</b></div>
+      <div class="gauge-track">
+        <div class="gauge-marker"></div>
+        <div class="gauge-fill split" id="g-nii-fill" style="width: 0%"></div>
+      </div>
+    </div>
+    <div class="gauge">
+      <div class="gauge-label"><span>EVE Sens · +200bp</span><b id="g-eve">0.0%</b></div>
+      <div class="gauge-track">
+        <div class="gauge-marker"></div>
+        <div class="gauge-fill split" id="g-eve-fill" style="width: 0%"></div>
+      </div>
+    </div>
+    <div class="gauge">
+      <div class="gauge-label"><span>Liquidity Coverage</span><b id="g-lcr">100%</b></div>
+      <div class="gauge-track">
+        <div class="gauge-fill" id="g-lcr-fill" style="width: 50%"></div>
+      </div>
+    </div>
+    <div class="gauge">
+      <div class="gauge-label"><span>CET1 Capital Ratio</span><b id="g-cet1">11.0%</b></div>
+      <div class="gauge-track">
+        <div class="gauge-fill" id="g-cet1-fill" style="width: 66%"></div>
+      </div>
+    </div>
+
+    <div class="panel-title" style="margin-top: 28px;"><span>Decision Log</span><span id="log-count">0</span></div>
+    <div class="log" id="log"></div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="onboarding">
+  <div class="modal">
+    <div class="modal-icon">A</div>
+    <h1 class="modal-title">The art of <em>matching</em> what you own to what you owe.</h1>
+    <p class="modal-sub">An asset-liability management simulation in four quarters.</p>
+
+    <div class="primer">
+      <b>The brief.</b> You inherit a community bank with $4.2B in assets. Your charter: protect net interest income from rate shocks while keeping the regulators, depositors, and shareholders all reasonably calm. Each quarter you'll reposition the balance sheet — choosing what to <b>put on</b> and what to <b>fund it with</b>. Then the curve moves. Then you live with what you built.
+    </div>
+
+    <div class="section-label">Pick your seat</div>
+    <div class="role-choices">
+      <button class="role-choice" data-role="CFO">
+        <div class="role-choice-emoji">📈</div>
+        <div class="role-choice-name">Chief Financial Officer</div>
+        <div class="role-choice-desc">Earnings-first. Optimizes NII and ROE. Tolerates duration risk for spread. The board likes profitable quarters.</div>
+      </button>
+      <button class="role-choice" data-role="CRO">
+        <div class="role-choice-emoji">🛡️</div>
+        <div class="role-choice-name">Chief Risk Officer</div>
+        <div class="role-choice-desc">Survival-first. Optimizes EVE stability and liquidity. Trades spread for tail protection. Examiners are your audience.</div>
+      </button>
+    </div>
+
+    <div class="modal-footer">
+      <span class="action-hint">~12 minutes · 4 quarters · 1 annual review</span>
+      <button class="btn btn-primary" id="start-btn" disabled>Take the chair</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const STATE = {
+  role: null,
+  quarter: 0,
+  bank: { name: 'Meridian Trust & Savings', capital: 462, health: 100, nii_cum: 0, eve_changes: 0, regulator_score: 0, shareholder_score: 0 },
+  bs: {
+    cash:       { qty: 4,  yield: 4.8, duration: 0.1, label: 'Cash & Reserves', sub: 'overnight · zero-risk' },
+    treas_2y:   { qty: 6,  yield: 4.5, duration: 1.9, label: '2Y Treasuries',   sub: 'short rates · liquid' },
+    treas_10y:  { qty: 4,  yield: 4.2, duration: 8.5, label: '10Y Treasuries',  sub: 'duration risk · liquid' },
+    mbs:        { qty: 10, yield: 5.4, duration: 5.2, label: 'Agency MBS',      sub: 'negative convexity' },
+    cre_loans:  { qty: 14, yield: 7.1, duration: 3.5, label: 'CRE Loans',       sub: 'fixed · credit risk' },
+    c_i_loans:  { qty: 12, yield: 7.8, duration: 0.4, label: 'C&I Floating',    sub: 'SOFR+ · resets quarterly' },
+    res_mort:   { qty: 8,  yield: 6.5, duration: 6.8, label: 'Residential Mtg', sub: '30Y fixed · prepay risk' },
+    dda:        { qty: 16, cost: 0.2, duration: 4.0, beta: 0.2, label: 'Demand Deposits', sub: 'non-int bearing · sticky' },
+    cd_short:   { qty: 10, cost: 4.6, duration: 0.5, beta: 0.9, label: '6M CDs',          sub: 'wholesale-like · price-sensitive' },
+    cd_long:    { qty: 6,  cost: 4.3, duration: 2.2, beta: 0.7, label: '2Y CDs',          sub: 'rate-locked' },
+    money_mkt:  { qty: 12, cost: 4.1, duration: 0.3, beta: 0.85, label: 'Money Market',   sub: 'high-beta · runs at stress' },
+    fhlb:       { qty: 4,  cost: 5.0, duration: 1.0, beta: 1.0, label: 'FHLB Advances',   sub: 'wholesale · stigma risk' },
+    debt_5y:    { qty: 2,  cost: 5.5, duration: 4.5, beta: 0,   label: '5Y Sub Debt',     sub: 'fixed · counts toward T2' },
+  },
+  baseBs: null,
+  log: [],
+  sessionStart: Date.now(),
+  history: [],
+};
+
+const UNIT = 50;
+const ASSETS = ['cash', 'treas_2y', 'treas_10y', 'mbs', 'cre_loans', 'c_i_loans', 'res_mort'];
+const LIABS = ['dda', 'cd_short', 'cd_long', 'money_mkt', 'fhlb', 'debt_5y'];
+
+const SCENARIOS = [
+  {
+    quarter: 'Q1',
+    eyebrow: 'Opening position · Q1',
+    title: 'You inherit a <em>steepening</em> bet.',
+    body: 'Your predecessor stacked the book with <strong>10Y treasuries and 30Y mortgages</strong>, betting the curve would steepen. It has not. The Fed has signaled "higher for longer" and the 2s10s sits at –62bp. You have one quarter to reposition before the next ALCO meeting. <strong>Build your starting balance sheet</strong> — total assets must equal total liabilities + capital.',
+    shockType: 'parallel_up_100',
+    coachCFO: 'Earnings desk note: floating-rate C&I and short CDs widen NII if rates rise. Don\'t over-fund with hot money.',
+    coachCRO: 'Risk desk note: duration gap over 2.0yr triggers regulator scrutiny. Long MBS look juicy but extend in a sell-off.',
+  },
+  {
+    quarter: 'Q2',
+    eyebrow: 'Rate shock · Q2',
+    title: 'The Fed surprises with <em>+100bp</em>.',
+    body: 'A hotter-than-expected CPI print pushes the FOMC to hike 100bp in a single move. The 10Y jumps 80bp. Your AFS securities take a mark-to-market hit, deposit betas accelerate, and your floating-rate loans reprice up. <strong>Reposition the book</strong> for what comes next — the market expects another 50bp before year-end.',
+    shockType: 'parallel_up_50',
+    coachCFO: 'Spread is widening on the asset side. Lean into short-duration assets and lock in cheap long funding while you can.',
+    coachCRO: 'Watch your AOCI hit. Long-duration AFS losses flow to capital. Trim the 10Y position if you can stomach the realized loss.',
+  },
+  {
+    quarter: 'Q3',
+    eyebrow: 'Regime shift · Q3',
+    title: 'Deposits are <em>walking</em>.',
+    body: 'A regional bank failure across the country has spooked your money-market depositors. You\'ve lost 15% of MMDA balances in two weeks. FHLB advances are available but stigmatized. The yield curve has inverted further. <strong>Shore up liquidity</strong> — but every dollar of cash is a dollar not earning spread.',
+    shockType: 'curve_steepens',
+    coachCFO: 'You need core deposits. Raise CD rates aggressively to stem the bleed. Yes, NII suffers — better than a run.',
+    coachCRO: 'This is the moment to be liquid. Sell short treasuries, build cash, refuse to chase yield. Survive the quarter.',
+  },
+  {
+    quarter: 'Q4',
+    eyebrow: 'Pivot · Q4',
+    title: 'The Fed pivots <em>dovish</em>.',
+    body: 'Inflation prints come in soft three months running. The market prices in 150bp of cuts over the next year. The 10Y rallies 90bp. Your underwater long-duration assets are coming back to life — but your floating-rate loans are about to give back all that spread. <strong>One final repositioning</strong> before the annual board review.',
+    shockType: 'parallel_dn_100',
+    coachCFO: 'Add fixed-rate duration now while it\'s still cheap. Lock in long funding before deposit competition collapses.',
+    coachCRO: 'Don\'t reach. Be neutral. The book that survives is the book with controlled duration in both directions.',
+  },
+];
+
+function totalAssets() { return ASSETS.reduce((s, k) => s + STATE.bs[k].qty * UNIT, 0); }
+function totalLiabs() { return LIABS.reduce((s, k) => s + STATE.bs[k].qty * UNIT, 0); }
+
+function weightedAssetDuration() {
+  const total = totalAssets();
+  if (total === 0) return 0;
+  return ASSETS.reduce((s, k) => s + (STATE.bs[k].qty * UNIT / total) * STATE.bs[k].duration, 0);
+}
+function weightedLiabDuration() {
+  const total = totalLiabs();
+  if (total === 0) return 0;
+  return LIABS.reduce((s, k) => {
+    const item = STATE.bs[k];
+    const effDur = item.beta != null ? item.duration * (item.beta < 0.3 ? 0.5 : 1.0) : item.duration;
+    return s + (item.qty * UNIT / total) * effDur;
+  }, 0);
+}
+
+function durationGap() {
+  return weightedAssetDuration() - (totalLiabs() / totalAssets()) * weightedLiabDuration();
+}
+
+function niiSensitivity100() {
+  const assetGain = ASSETS.reduce((s, k) => {
+    const item = STATE.bs[k];
+    const share = item.duration < 1.0 ? 1.0 : (item.duration < 3.0 ? 0.3 : 0.05);
+    return s + item.qty * UNIT * 0.01 * share;
+  }, 0);
+  const liabCost = LIABS.reduce((s, k) => s + STATE.bs[k].qty * UNIT * 0.01 * (STATE.bs[k].beta || 0), 0);
+  const nii = currentNetInterestIncome();
+  return ((assetGain - liabCost) / nii) * 100;
+}
+
+function currentNetInterestIncome() {
+  const ii = ASSETS.reduce((s, k) => s + STATE.bs[k].qty * UNIT * (STATE.bs[k].yield / 100), 0);
+  const ie = LIABS.reduce((s, k) => s + STATE.bs[k].qty * UNIT * (STATE.bs[k].cost / 100), 0);
+  return ii - ie;
+}
+
+function eveSensitivity200() {
+  const A = totalAssets(), L = totalLiabs();
+  const dA = weightedAssetDuration(), dL = weightedLiabDuration();
+  return -(dA - (L / A) * dL) * 0.02 * (A / STATE.bank.capital) * 100;
+}
+
+function liquidityCoverageRatio() {
+  const hqla = STATE.bs.cash.qty * UNIT
+             + (STATE.bs.treas_2y.qty + STATE.bs.treas_10y.qty) * UNIT * 0.97
+             + STATE.bs.mbs.qty * UNIT * 0.85;
+  const outflow = STATE.bs.money_mkt.qty * UNIT * 0.40
+                + STATE.bs.cd_short.qty * UNIT * 0.30
+                + STATE.bs.fhlb.qty * UNIT * 0.50
+                + STATE.bs.dda.qty * UNIT * 0.05;
+  return outflow === 0 ? 999 : (hqla / outflow) * 100;
+}
+
+function cet1Ratio() {
+  const rwa = STATE.bs.mbs.qty * UNIT * 0.20
+            + STATE.bs.cre_loans.qty * UNIT * 1.0
+            + STATE.bs.c_i_loans.qty * UNIT * 1.0
+            + STATE.bs.res_mort.qty * UNIT * 0.50;
+  return rwa === 0 ? 100 : (STATE.bank.capital / rwa) * 100;
+}
+
+function wholesaleShare() {
+  const wholesale = (STATE.bs.fhlb.qty + STATE.bs.money_mkt.qty * 0.5) * UNIT;
+  return (wholesale / totalLiabs()) * 100;
+}
+
+function applyShock(shockType) {
+  let move = 0, curveTwist = 0, label = '';
+  switch (shockType) {
+    case 'parallel_up_100': move = 100; label = '+100bp parallel shift'; break;
+    case 'parallel_up_50':  move = 50;  label = '+50bp parallel shift';  break;
+    case 'curve_steepens':  move = 25; curveTwist = 50; label = '+25bp short · +75bp long'; break;
+    case 'parallel_dn_100': move = -100; label = '–100bp parallel shift'; break;
+  }
+  let mtm = 0;
+  ['treas_2y', 'treas_10y', 'mbs'].forEach(k => {
+    const item = STATE.bs[k];
+    const effMove = (k === 'treas_10y' || k === 'mbs' ? move + curveTwist : move) / 10000;
+    mtm += -item.qty * UNIT * item.duration * effMove;
+  });
+  const niiGap = niiSensitivity100() * Math.abs(move) / 100;
+  const nii_change = currentNetInterestIncome() * niiGap / 100 * Math.sign(move);
+  const A = totalAssets(), L = totalLiabs();
+  const eve_change = -(weightedAssetDuration() * A - weightedLiabDuration() * L) * (move / 10000);
+  return { shockLabel: label, move, mtm, nii: nii_change, eve: eve_change };
+}
+
+function fmt(num, decimals = 0, sign = false) {
+  const s = num.toFixed(decimals);
+  return sign && num > 0 ? '+' + s : s;
+}
+function fmtCurrency(num, decimals = 0) {
+  const abs = Math.abs(num);
+  return (num < 0 ? '−' : '') + '$' + abs.toFixed(decimals);
+}
+
+function updateTelemetry() {
+  const dGap = durationGap();
+  document.getElementById('g-dur').textContent = fmt(dGap, 2, true) + ' yr';
+  const dGapBar = document.getElementById('g-dur-fill');
+  const dGapPct = Math.min(50, Math.abs(dGap) * 12);
+  dGapBar.style.width = dGapPct + '%';
+  dGapBar.style.left = dGap >= 0 ? '50%' : (50 - dGapPct) + '%';
+  dGapBar.className = 'gauge-fill split' + (dGap < -1 ? ' neg' : '');
+
+  const niiSens = niiSensitivity100();
+  document.getElementById('g-nii').textContent = fmt(niiSens, 1, true) + '%';
+  const niiBar = document.getElementById('g-nii-fill');
+  const niiBarPct = Math.min(48, Math.abs(niiSens) * 2);
+  niiBar.style.width = niiBarPct + '%';
+  niiBar.style.left = niiSens >= 0 ? '50%' : (50 - niiBarPct) + '%';
+  niiBar.className = 'gauge-fill split' + (niiSens < 0 ? ' neg' : '');
+
+  const eveSens = eveSensitivity200();
+  document.getElementById('g-eve').textContent = fmt(eveSens, 1, true) + '%';
+  const eveBar = document.getElementById('g-eve-fill');
+  const eveBarPct = Math.min(48, Math.abs(eveSens) * 1.5);
+  eveBar.style.width = eveBarPct + '%';
+  eveBar.style.left = eveSens >= 0 ? '50%' : (50 - eveBarPct) + '%';
+  eveBar.className = 'gauge-fill split' + (eveSens < -15 ? ' neg' : '');
+
+  const lcr = liquidityCoverageRatio();
+  document.getElementById('g-lcr').textContent = fmt(lcr, 0) + '%';
+  const lcrBar = document.getElementById('g-lcr-fill');
+  lcrBar.style.width = Math.min(100, lcr / 2) + '%';
+  lcrBar.style.background = lcr < 100 ? 'var(--red)' : (lcr < 130 ? 'var(--orange)' : 'var(--green)');
+
+  const cet1 = cet1Ratio();
+  document.getElementById('g-cet1').textContent = fmt(cet1, 1) + '%';
+  const cet1Bar = document.getElementById('g-cet1-fill');
+  cet1Bar.style.width = Math.min(100, cet1 * 6) + '%';
+  cet1Bar.style.background = cet1 < 7 ? 'var(--red)' : (cet1 < 10 ? 'var(--orange)' : 'var(--green)');
+
+  renderPositionSnapshot();
+  document.getElementById('health-pct').textContent = Math.max(0, Math.round(STATE.bank.health)) + '%';
+  document.getElementById('health-fill').style.width = Math.max(0, STATE.bank.health) + '%';
+}
+
+function renderPositionSnapshot() {
+  const nii = currentNetInterestIncome();
+  document.getElementById('position-snapshot').innerHTML = `
+    <div class="metric-row"><span class="metric-label">Total Assets</span><span class="metric-val">${fmtCurrency(totalAssets())}M</span></div>
+    <div class="metric-row"><span class="metric-label">Total Liabilities</span><span class="metric-val">${fmtCurrency(totalLiabs())}M</span></div>
+    <div class="metric-row"><span class="metric-label">CET1 Capital</span><span class="metric-val">${fmtCurrency(STATE.bank.capital)}M</span></div>
+    <div class="metric-row"><span class="metric-label">Annualized NII</span><span class="metric-val ${nii > 60 ? 'ok' : nii > 30 ? 'warn' : 'bad'}">${fmtCurrency(nii, 1)}M</span></div>
+    <div class="metric-row"><span class="metric-label">Asset Duration</span><span class="metric-val">${fmt(weightedAssetDuration(), 2)} yr</span></div>
+    <div class="metric-row"><span class="metric-label">Liab. Duration</span><span class="metric-val">${fmt(weightedLiabDuration(), 2)} yr</span></div>
+    <div class="metric-row"><span class="metric-label">Wholesale Funding</span><span class="metric-val ${wholesaleShare() > 25 ? 'warn' : ''}">${fmt(wholesaleShare(), 1)}%</span></div>
+  `;
+}
+
+function addLog(msg, level = 'info') {
+  const ts = formatClock(Date.now() - STATE.sessionStart);
+  STATE.log.unshift({ ts, msg, level });
+  if (STATE.log.length > 50) STATE.log.pop();
+  document.getElementById('log').innerHTML = STATE.log.map(e =>
+    `<div class="log-entry"><span class="log-ts">${e.ts}</span><span class="log-msg ${e.level}">${e.msg}</span></div>`
+  ).join('');
+  document.getElementById('log-count').textContent = STATE.log.length;
+}
+
+function formatClock(ms) {
+  const total = Math.floor(ms / 1000);
+  const h = String(Math.floor(total / 3600)).padStart(2, '0');
+  const m = String(Math.floor((total % 3600) / 60)).padStart(2, '0');
+  const s = String(total % 60).padStart(2, '0');
+  return `${h}:${m}:${s}`;
+}
+
+setInterval(() => {
+  if (!STATE.role) return;
+  document.getElementById('session-clock').textContent = formatClock(Date.now() - STATE.sessionStart);
+}, 1000);
+
+function renderPositionPhase() {
+  setPhase(1);
+  const sc = SCENARIOS[STATE.quarter];
+  const coach = STATE.role === 'CFO' ? sc.coachCFO : sc.coachCRO;
+  const deskInitials = STATE.role === 'CFO' ? 'CF' : 'CR';
+  const deskName = STATE.role === 'CFO' ? 'Earnings desk' : 'Risk desk';
+  const assetItems = ASSETS.map(k => renderBsItem(k, 'asset')).join('');
+  const liabItems = LIABS.map(k => renderBsItem(k, 'liab')).join('');
+  const balance = totalAssets() - totalLiabs() - STATE.bank.capital;
+
+  document.getElementById('stage-content').innerHTML = `
+    <div class="scenario-header">
+      <div class="scenario-eyebrow">${sc.eyebrow}</div>
+      <h1 class="scenario-title">${sc.title}</h1>
+      <p class="scenario-body">${sc.body}</p>
+    </div>
+
+    <div class="desk-note">
+      <div class="desk-avatar">${deskInitials}</div>
+      <div>
+        <div class="desk-attribution">${deskName} · ${sc.quarter} briefing</div>
+        <div class="desk-body">${coach}</div>
+      </div>
+    </div>
+
+    <div class="builder">
+      <div class="bs-side asset-side">
+        <h3><span><span class="dot"></span>Assets</span><span class="total" id="asset-total">${fmtCurrency(totalAssets())}M</span></h3>
+        ${assetItems}
+      </div>
+      <div class="bs-side liab-side">
+        <h3><span><span class="dot"></span>Liabilities</span><span class="total" id="liab-total">${fmtCurrency(totalLiabs())}M</span></h3>
+        ${liabItems}
+        <div style="margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--line); display: flex; justify-content: space-between; font-size: 13px;">
+          <span style="color: var(--ink-3); font-weight: 500;">+ CET1 Capital</span>
+          <span style="font-weight: 600; font-variant-numeric: tabular-nums; font-family: var(--mono);">${fmtCurrency(STATE.bank.capital)}M</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="constraint-banner ${Math.abs(balance) < 25 ? 'ok' : 'bad'}" id="balance-banner">
+      <span class="label">Balance sheet equation · A = L + E</span>
+      <span class="val">${balance > 0 ? '+' : ''}${fmtCurrency(balance, 0)}M ${Math.abs(balance) < 25 ? '· balanced' : '· unbalanced'}</span>
+    </div>
+
+    <div class="action-bar">
+      <button class="btn btn-ghost" onclick="resetQuarter()">↻ Reset quarter</button>
+      <button class="btn btn-primary" id="lock-btn" onclick="lockInPosition()" ${Math.abs(balance) < 25 ? '' : 'disabled'}>
+        Lock position →
+      </button>
+    </div>
+  `;
+  updateTelemetry();
+  updateBuilderTotals();
+}
+
+function renderBsItem(key, side) {
+  const item = STATE.bs[key];
+  const durOrCost = side === 'asset'
+    ? `<b>${item.yield}%</b>${item.duration}y dur`
+    : `<b>${item.cost}%</b>β ${item.beta}`;
+  return `
+    <div class="bs-item">
+      <div class="bs-item-name"><b>${item.label}</b><span>${item.sub}</span></div>
+      <div class="bs-duration">${durOrCost}</div>
+      <div class="qty-control">
+        <button onclick="changeQty('${key}', -1)">−</button>
+        <span class="qty-val" id="qty-${key}">${item.qty}</span>
+        <button onclick="changeQty('${key}', 1)">+</button>
+      </div>
+    </div>
+  `;
+}
+
+function changeQty(key, delta) {
+  const newQty = STATE.bs[key].qty + delta;
+  if (newQty < 0 || newQty > 40) return;
+  STATE.bs[key].qty = newQty;
+  document.getElementById('qty-' + key).textContent = newQty;
+  updateBuilderTotals();
+  updateTelemetry();
+}
+
+function updateBuilderTotals() {
+  const at = document.getElementById('asset-total');
+  const lt = document.getElementById('liab-total');
+  if (at) at.textContent = fmtCurrency(totalAssets()) + 'M';
+  if (lt) lt.textContent = fmtCurrency(totalLiabs()) + 'M';
+  const balance = totalAssets() - totalLiabs() - STATE.bank.capital;
+  const banner = document.getElementById('balance-banner');
+  const lockBtn = document.getElementById('lock-btn');
+  if (banner) {
+    banner.className = 'constraint-banner ' + (Math.abs(balance) < 25 ? 'ok' : 'bad');
+    banner.querySelector('.val').textContent =
+      (balance > 0 ? '+' : '') + fmtCurrency(balance, 0) + 'M ' +
+      (Math.abs(balance) < 25 ? '· balanced' : '· unbalanced');
+  }
+  if (lockBtn) lockBtn.disabled = Math.abs(balance) >= 25;
+}
+
+function resetQuarter() {
+  if (STATE.quarter === 0 && STATE.baseBs) {
+    Object.keys(STATE.baseBs).forEach(k => { STATE.bs[k].qty = STATE.baseBs[k].qty; });
+  } else if (STATE.history[STATE.quarter]) {
+    Object.keys(STATE.history[STATE.quarter].bs).forEach(k => {
+      STATE.bs[k].qty = STATE.history[STATE.quarter].bs[k];
+    });
+  }
+  renderPositionPhase();
+  addLog('Position reset to quarter start', 'info');
+}
+
+function lockInPosition() {
+  const snapshot = {};
+  Object.keys(STATE.bs).forEach(k => snapshot[k] = STATE.bs[k].qty);
+  STATE.history[STATE.quarter] = { bs: snapshot, durGap: durationGap() };
+  addLog(`<b>${SCENARIOS[STATE.quarter].quarter} position locked.</b> Duration gap ${fmt(durationGap(),2,true)}y`, 'info');
+  renderShockPhase();
+}
+
+function renderShockPhase() {
+  setPhase(2);
+  const sc = SCENARIOS[STATE.quarter];
+  const impact = applyShock(sc.shockType);
+  STATE.pendingImpact = impact;
+  const bpsClass = impact.move > 0 ? 'up' : 'dn';
+  const bpsText = impact.move > 0 ? `+${impact.move}bp` : `${impact.move}bp`;
+  const restOfLabel = impact.shockLabel.replace(/^[+−–]?\d+bp\s*/, '').replace(/^[+−–]\d+bp.*?·\s*/, '');
+
+  document.getElementById('stage-content').innerHTML = `
+    <div class="scenario-header">
+      <div class="scenario-eyebrow">Rate shock · ${sc.quarter}</div>
+      <h1 class="scenario-title">The market just <em>moved</em>.</h1>
+    </div>
+
+    <div class="shock-display">
+      <div class="shock-headline">
+        <span class="shock-bps ${bpsClass}">${bpsText}</span>
+        <span class="shock-label">${impact.shockLabel.includes('·') ? impact.shockLabel : 'parallel shift across the curve'}</span>
+      </div>
+      <div class="shock-sub">Effective immediately · MTM repriced</div>
+      <div class="curve-vis">${renderCurve(impact.move, sc.shockType.includes('steepens'))}</div>
+    </div>
+
+    <div style="margin-top: 28px; font-size: 15px; color: var(--ink-3); line-height: 1.6; max-width: 64ch;">
+      Your position is now <strong style="color: var(--ink); font-weight: 600;">marked to the new curve</strong>. AFS securities are repriced. Floating-rate loans will begin to reset on their next reset date. Deposit costs will follow with a lag determined by deposit beta.
+    </div>
+
+    <div class="action-bar">
+      <span class="action-hint">Decision frozen · Impact model computing</span>
+      <button class="btn btn-primary" onclick="renderOutcomePhase()">Reveal impact →</button>
+    </div>
+  `;
+  addLog(`<b>Rate shock</b>: ${impact.shockLabel}`, impact.move > 0 ? 'warn' : 'info');
+}
+
+function renderCurve(move, isSteepening) {
+  const width = 560, height = 140;
+  const points = [
+    { x: 0.05, y0: 4.8 }, { x: 0.2, y0: 4.6 }, { x: 0.4, y0: 4.4 },
+    { x: 0.6, y0: 4.3 }, { x: 0.8, y0: 4.2 }, { x: 0.95, y0: 4.3 },
+  ];
+  const xScale = x => 36 + x * (width - 72);
+  const yScale = y => height - 24 - (y - 3.5) * 60;
+  let beforePath = '', afterPath = '';
+  points.forEach((p, i) => {
+    const x = xScale(p.x);
+    const y1 = yScale(p.y0);
+    const moveAdj = isSteepening ? p.y0 + (25 + 50 * p.x) / 100 : p.y0 + move / 100;
+    const y2 = yScale(moveAdj);
+    beforePath += (i === 0 ? 'M' : 'L') + x + ',' + y1 + ' ';
+    afterPath += (i === 0 ? 'M' : 'L') + x + ',' + y2 + ' ';
+  });
+  const afterColor = move > 0 ? '#ff453a' : '#0071e3';
+
+  return `
+    <svg viewBox="0 0 ${width} ${height}" style="width: 100%; max-width: ${width}px; height: auto; display: block; margin: 0 auto;">
+      <line x1="36" y1="${height-24}" x2="${width-36}" y2="${height-24}" stroke="rgba(0,0,0,0.1)" stroke-width="1"/>
+      <text x="36" y="${height-6}" fill="#86868b" font-size="10" font-family="Inter">0M</text>
+      <text x="${width/2 - 10}" y="${height-6}" fill="#86868b" font-size="10" font-family="Inter">5Y</text>
+      <text x="${width-54}" y="${height-6}" fill="#86868b" font-size="10" font-family="Inter">30Y</text>
+      <path d="${beforePath}" fill="none" stroke="#a1a1a6" stroke-width="2" stroke-dasharray="4,4" stroke-linecap="round"/>
+      <path d="${afterPath}" fill="none" stroke="${afterColor}" stroke-width="2.5" stroke-linecap="round">
+        <animate attributeName="stroke-dasharray" from="0,1000" to="1000,0" dur="1.0s" fill="freeze"/>
+      </path>
+      <g transform="translate(${width - 200}, 16)">
+        <line x1="0" y1="-3" x2="14" y2="-3" stroke="#a1a1a6" stroke-width="2" stroke-dasharray="3,3"/>
+        <text x="20" y="0" fill="#6e6e73" font-size="11" font-family="Inter">previous curve</text>
+        <line x1="0" y1="13" x2="14" y2="13" stroke="${afterColor}" stroke-width="2.5"/>
+        <text x="20" y="16" fill="${afterColor}" font-size="11" font-family="Inter" font-weight="500">new curve</text>
+      </g>
+    </svg>
+  `;
+}
+
+function renderOutcomePhase() {
+  setPhase(3);
+  const sc = SCENARIOS[STATE.quarter];
+  const impact = STATE.pendingImpact;
+
+  STATE.bank.capital += impact.mtm;
+  STATE.bank.nii_cum += impact.nii;
+  STATE.bank.eve_changes += Math.abs(impact.eve);
+
+  if (impact.mtm < -50) STATE.bank.health -= 15;
+  if (impact.mtm < -100) STATE.bank.health -= 15;
+  if (liquidityCoverageRatio() < 100) STATE.bank.health -= 20;
+  if (cet1Ratio() < 8) STATE.bank.health -= 15;
+  if (Math.abs(durationGap()) > 3) STATE.bank.health -= 10;
+  STATE.bank.health = Math.max(0, Math.min(100, STATE.bank.health));
+
+  if (impact.nii > 0) STATE.bank.shareholder_score += 10;
+  if (impact.nii < -5) STATE.bank.shareholder_score -= 8;
+  if (Math.abs(durationGap()) < 1.5) STATE.bank.regulator_score += 10;
+  if (Math.abs(durationGap()) > 3) STATE.bank.regulator_score -= 15;
+  if (liquidityCoverageRatio() > 130) STATE.bank.regulator_score += 5;
+  if (liquidityCoverageRatio() < 100) STATE.bank.regulator_score -= 20;
+
+  const narrative = generateNarrative(impact);
+
+  document.getElementById('stage-content').innerHTML = `
+    <div class="scenario-header">
+      <div class="scenario-eyebrow">Consequences · ${sc.quarter}</div>
+      <h1 class="scenario-title">The shock <em>printed</em>.</h1>
+      <p class="scenario-body">Here's the damage. Or the gift. Depending on what you built.</p>
+    </div>
+
+    <div class="impact-grid">
+      <div class="impact-cell">
+        <div class="impact-label">AOCI · Mark-to-market</div>
+        <div class="impact-num ${impact.mtm >= 0 ? 'pos' : 'neg'}">${fmt(impact.mtm,1,true)}M</div>
+        <div class="impact-sub">Flows to CET1 capital</div>
+      </div>
+      <div class="impact-cell">
+        <div class="impact-label">Next 12M Δ NII</div>
+        <div class="impact-num ${impact.nii >= 0 ? 'pos' : 'neg'}">${fmt(impact.nii,1,true)}M</div>
+        <div class="impact-sub">Forward earnings impact</div>
+      </div>
+      <div class="impact-cell">
+        <div class="impact-label">Δ Economic value of equity</div>
+        <div class="impact-num ${impact.eve >= 0 ? 'pos' : 'neg'}">${fmt(impact.eve,1,true)}M</div>
+        <div class="impact-sub">PV of all future cash flows</div>
+      </div>
+    </div>
+
+    <div class="narrative">
+      <div class="narrative-body">${narrative.body}</div>
+      <div class="narrative-attr">— ${narrative.attribution}</div>
+    </div>
+
+    <div class="regulator-note ${narrative.regClass}">
+      <div class="reg-label">Regulatory readout</div>
+      ${narrative.regulator}
+    </div>
+
+    <div class="action-bar">
+      <span class="action-hint">${sc.quarter === 'Q4' ? 'Proceed to annual board review' : 'Proceed to next quarter'}</span>
+      <button class="btn btn-primary" onclick="nextQuarter()">${sc.quarter === 'Q4' ? 'Face the board →' : `Begin ${SCENARIOS[STATE.quarter + 1].quarter} →`}</button>
+    </div>
+  `;
+  addLog(`<b>Impact</b>: AOCI ${fmt(impact.mtm,1,true)}M · NII ${fmt(impact.nii,1,true)}M · EVE ${fmt(impact.eve,1,true)}M`,
+    impact.mtm < -50 || impact.nii < -10 ? 'bad' : 'good');
+  updateTelemetry();
+}
+
+function generateNarrative(impact) {
+  const dGap = durationGap();
+  const lcr = liquidityCoverageRatio();
+  const cet1 = cet1Ratio();
+  let body = '', attribution = '', regulator = '', regClass = '';
+
+  if (impact.mtm < -100) {
+    body = "The mark-to-market hit is brutal. The trading floor is silent. CNBC has us on screen with a chyron reading 'regional bank under pressure.' Our long-duration AFS portfolio bled out the moment the curve moved. We will be having difficult conversations with the auditors about HTM reclassifications.";
+    attribution = "Treasurer · Internal memo";
+  } else if (impact.nii > 8) {
+    body = "Beautiful quarter. The floating-rate loan book is repricing up while our deposit costs lag. Spreads have never looked this good. The earnings call practically writes itself. Caveat: we haven't yet seen what happens when this reverses.";
+    attribution = STATE.role === 'CFO' ? "Earnings desk · CFO briefing" : "Risk desk · Cautiously optimistic";
+  } else if (impact.nii < -8) {
+    body = "Earnings just collapsed. Asset yields are pinned where they were while deposit costs marched higher. We're essentially paying customers to fund treasuries we bought two years ago. The board will ask why we didn't have more floating-rate exposure. We won't have a good answer.";
+    attribution = "Earnings desk · Post-mortem";
+  } else if (Math.abs(dGap) < 1.0 && Math.abs(impact.mtm) < 30) {
+    body = "Boring quarter. The book absorbed the shock with grace. Asset and liability durations were close enough that the EVE move was contained. The CRO is smiling. The CFO is wondering whether we left too much spread on the table. Both views are correct.";
+    attribution = "ALCO · Quarterly report";
+  } else if (lcr < 100) {
+    body = "Liquidity is the issue. HQLA coverage of our 30-day stress outflow has slipped below the regulatory minimum. We have advance capacity at the FHLB but tapping it sends signals to the market. Every dollar we draw now costs us two in the deposit market.";
+    attribution = "Treasury · Escalation";
+  } else {
+    body = "A mixed quarter. The book moved in some places we expected and a few we did not. We are still standing. The ALCO meeting next week will spend most of its time on residential mortgage prepay assumptions — they were wrong, again.";
+    attribution = "ALCO · Routine report";
+  }
+
+  if (Math.abs(dGap) > 3) {
+    regulator = "<b>Examiner flag.</b> Duration gap exceeds 3.0 years — outside policy limits for a bank of this size. Expect a written request for a remediation plan. Internal ALCO minutes will be requested.";
+    regClass = 'bad';
+  } else if (cet1 < 8) {
+    regulator = "<b>Capital warning.</b> CET1 below 8% triggers MDA restrictions. No dividends, no buybacks, no executive bonuses until restored.";
+    regClass = 'bad';
+  } else if (lcr < 100) {
+    regulator = "<b>LCR breach.</b> Liquidity coverage below minimum. Daily reporting now required. Plan for restoration must be submitted within 5 business days.";
+    regClass = 'bad';
+  } else if (Math.abs(dGap) < 1.0 && cet1 > 11) {
+    regulator = "<b>No findings.</b> ALM posture remains within all internal and regulatory thresholds. The examiners moved on to the next institution.";
+    regClass = 'good';
+  } else {
+    regulator = "<b>Under watch.</b> Position is within limits but trending. Examiners requested supplementary IRR attribution by maturity bucket.";
+    regClass = 'warn';
+  }
+  return { body, attribution, regulator, regClass };
+}
+
+function renderBoardReview() {
+  setPhase(4);
+  const niiScore = Math.max(0, Math.min(40, STATE.bank.nii_cum + 20));
+  const stabilityScore = Math.max(0, 30 - STATE.bank.eve_changes / 4);
+  const regScore = Math.max(0, Math.min(30, 15 + STATE.bank.regulator_score / 2));
+  const total = niiScore + stabilityScore + regScore;
+
+  let grade = 'F', gradeBody = '', gradeTitle = '';
+  if (total >= 85) {
+    grade = 'A'; gradeTitle = "The board offers an extension.";
+    gradeBody = "You navigated four distinct rate regimes with measured judgment. NII held, capital was preserved, and the regulators have nothing on their list. The board is recommending a three-year contract extension and an enhanced equity package.";
+  } else if (total >= 70) {
+    grade = 'B'; gradeTitle = "Solid year. Room to grow.";
+    gradeBody = "You made some calls the board wishes you'd made differently — the residential mortgage timing, mostly — but on the whole, the bank is in better shape than the peer group. Bonus pool is intact.";
+  } else if (total >= 55) {
+    grade = 'C'; gradeTitle = "The board would like a word.";
+    gradeBody = "The bank survived, but several quarters featured ALM postures the audit committee considers 'aggressive given the rate environment.' The strategic plan is being re-examined. Your bonus is materially impacted.";
+  } else if (total >= 35) {
+    grade = 'D'; gradeTitle = "Restructuring announced.";
+    gradeBody = "Capital is impaired, regulators are involved, and the earnings trajectory is concerning. The board has retained a strategic advisor to evaluate options including a possible sale. Your role is under formal review.";
+  } else {
+    grade = 'F'; gradeTitle = "The bank is in resolution.";
+    gradeBody = "The combination of liquidity stress, capital erosion, and regulatory findings proved too much. The FDIC was appointed receiver Friday afternoon. By Monday morning, a healthier institution will have absorbed the deposits.";
+  }
+
+  document.getElementById('stage-content').innerHTML = `
+    <div class="scenario-header">
+      <div class="scenario-eyebrow">Annual board review · Year-end</div>
+    </div>
+
+    <div class="endscreen">
+      <div class="grade-card">
+        <div class="grade-display ${grade}">${grade}</div>
+        <div class="grade-content">
+          <h1 class="grade-title">${gradeTitle}</h1>
+          <p class="grade-body">${gradeBody}</p>
+        </div>
+      </div>
+
+      <div class="end-stats">
+        <div class="end-stat">
+          <div class="end-stat-label">Cumulative Δ NII</div>
+          <div class="end-stat-val" style="color: ${STATE.bank.nii_cum >= 0 ? '#248a3d' : '#c4302b'}">${fmt(STATE.bank.nii_cum,1,true)}M</div>
+        </div>
+        <div class="end-stat">
+          <div class="end-stat-label">Final CET1 capital</div>
+          <div class="end-stat-val">${fmtCurrency(STATE.bank.capital,0)}M</div>
+        </div>
+        <div class="end-stat">
+          <div class="end-stat-label">Composite score</div>
+          <div class="end-stat-val">${fmt(total,0)}<span style="color: var(--ink-4); font-size: 18px;">/100</span></div>
+        </div>
+        <div class="end-stat">
+          <div class="end-stat-label">Earnings</div>
+          <div class="end-stat-val" style="color: var(--teal);">${fmt(niiScore,0)}<span style="color: var(--ink-4); font-size: 16px;">/40</span></div>
+        </div>
+        <div class="end-stat">
+          <div class="end-stat-label">Stability</div>
+          <div class="end-stat-val" style="color: var(--orange);">${fmt(stabilityScore,0)}<span style="color: var(--ink-4); font-size: 16px;">/30</span></div>
+        </div>
+        <div class="end-stat">
+          <div class="end-stat-label">Regulatory</div>
+          <div class="end-stat-val" style="color: var(--purple);">${fmt(regScore,0)}<span style="color: var(--ink-4); font-size: 16px;">/30</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="narrative">
+      <div class="narrative-body">The art of ALM is not in predicting which way the curve moves. It's in building a balance sheet that performs adequately regardless. Every banker who has ever made it to a long career figured this out by losing on a few quarters early. You now have those quarters in your file.</div>
+      <div class="narrative-attr">— The treasurer's oath · apocryphal</div>
+    </div>
+
+    <div class="action-bar">
+      <button class="btn btn-secondary" onclick="location.reload()">↻ Play another year</button>
+      <span class="action-hint">Session ${formatClock(Date.now() - STATE.sessionStart)} · ${STATE.role} · Grade ${grade}</span>
+    </div>
+  `;
+  addLog(`<b>Annual review complete.</b> Composite ${fmt(total,0)}/100 · Grade ${grade}`,
+    grade === 'A' || grade === 'B' ? 'good' : grade === 'C' ? 'warn' : 'bad');
+}
+
+function nextQuarter() {
+  STATE.quarter++;
+  if (STATE.quarter >= SCENARIOS.length) {
+    renderBoardReview();
+    return;
+  }
+  document.getElementById('session-qtr').textContent = `${SCENARIOS[STATE.quarter].quarter} · Year 1`;
+  const sofr = (4.83 + (Math.random()-0.5) * 0.3).toFixed(2);
+  const ten = (4.21 + (Math.random()-0.5) * 0.4).toFixed(2);
+  document.getElementById('t-sofr').textContent = sofr;
+  document.getElementById('t-10y').textContent = ten;
+  document.getElementById('t-curve').textContent = Math.round((ten - sofr) * 100);
+  renderPositionPhase();
+}
+
+function setPhase(n) {
+  for (let i = 1; i <= 4; i++) {
+    const el = document.getElementById('phase-' + i);
+    el.classList.remove('active', 'done');
+    if (i < n) el.classList.add('done');
+    if (i === n) el.classList.add('active');
+  }
+}
+
+document.querySelectorAll('.role-choice').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.role-choice').forEach(b => b.classList.remove('selected'));
+    btn.classList.add('selected');
+    STATE.role = btn.dataset.role;
+    document.getElementById('start-btn').disabled = false;
+  });
+});
+
+document.getElementById('start-btn').addEventListener('click', () => {
+  STATE.baseBs = {};
+  Object.keys(STATE.bs).forEach(k => { STATE.baseBs[k] = { qty: STATE.bs[k].qty }; });
+  document.getElementById('role-display').textContent =
+    STATE.role === 'CFO' ? 'Chief Financial Officer' : 'Chief Risk Officer';
+  document.getElementById('role-icon').textContent = STATE.role === 'CFO' ? '📈' : '🛡️';
+  document.getElementById('onboarding').style.display = 'none';
+  STATE.sessionStart = Date.now();
+  addLog(`<b>${STATE.role}</b> seated at Meridian Trust. Beginning fiscal year.`, 'info');
+  renderPositionPhase();
+});
+
+updateTelemetry();
+</script>
+</body>
+</html>
